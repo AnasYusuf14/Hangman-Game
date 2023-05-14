@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <link rel="stylesheet" href="master.css">
+
+</head>
+<body>
+   
+    <div class="container">
+        <div class="game-info">
+            <div class="game-name">HANGMAN</div>
+            <img src="black.jpg" alt="noImg" class="img1">
+            <!-- //type of word -->
+            <div class="category">
+                word: <span class="key"></span>
+            </div> 
+        </div>
+        <div class="new">
+            <button id ="new"class="new-game" type="button" onclick="window.location.reload()">New Game</button>
+        </div>
+        <hr>
+        <div class="row"> 
+            <!-- //the container have the draw -->
+            <div class="hangman-draw">  
+                <!-- the draw -->
+                <div class="the-draw">
+                    <div class="stand"></div>
+                    <div class="hang"></div>
+                    <div class="rope"></div>
+                    <div class="the-man">
+                        <div class="head"></div>
+                        <div class="body-man"></div>
+                        <div class="hands"></div>
+                        <div class="leggs"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- letters -->
+            <div class="letters"></div>
+        </div>
+       
+        <hr>
+        <!-- the place have the letters guess by user -->
+        <div class="letter-guess"></div>
+    </div>
+    <audio id="win"  src="win.mp3" preload="auto"></audio>
+    <audio id="lose" src="lose.mp3" preload="auto"></audio>
+    
+    <script>
+        // kullanıcının seçtiği karakterleri oluşturmak ve bunları bir diziyi koymak: 
+        const letters = "abcdefghijklmnopqrstuvwxyz";
+        let lettersArray = Array.from(letters);
+        // console.log(lettersArray);
+        //harf kapsayıcısını seçmek:
+        let lettersContainer = document.querySelector(".letters");
+        //bu loop ekrana harflar ayri ayri yazdırmak için 
+        
+        lettersArray.forEach(letter =>{
+            //öncelikli span oluşturmak
+            let span = document.createElement("span");
+            //metin düğümü oluşturma
+            let theLetter = document.createTextNode(letter);
+            //harfi spana eklemek
+            span.appendChild(theLetter);
+            //sonra spana class eklemek:
+            span.className= 'letter-box';
+            //span containr'a eklemek:
+            lettersContainer.appendChild(span);
+        })
+        //kelimeler ve kategorileri nesnesi oluşturmak
+        const words = {
+            animal:["Dog","Cow","Cat", "Dolphin" ,"Frog","Whale", "Eagle","Flying", "squirrel","Ostrich","Goat","Goose"],
+            name:["Anas","Ali","Ahmad","Hassan","Jamal","Omar","Hafeez","Amir","Khalil","Adam","Osman","Amina","Aisha","Maha","sara","Noya","Ruhena"],
+            country:["Austria","Belgium","Colombia","Denmark","Egypt","France","Germany","Iraq","Lebanon","Morocco","Palestine","Turkey"]
+        } 
+        //rastgele katefori seçmek (animals , names veya countries)
+        let wordsKeys = Object.keys(words);
+        // console.log(wordsKeys);
+        let randNom = Math.floor(Math.random() * wordsKeys.length ); //rastgele sayi (0,3)
+        //rastgele kategory
+        let randKey = wordsKeys[randNom];
+        let randKeyName =words[randKey];
+        let randWordIndex = Math.floor(Math.random() *randKeyName.length);
+        // console.log(randWordIndex);
+        let randword = randKeyName[randWordIndex];
+        // console.log(randword);
+        document.querySelector(".game-info .category span").innerHTML =randKey;
+        //harf tahmin öğesini ayarlamak
+        let lettersGuessContainer = document.querySelector(".letter-guess");
+        /*Harflerin sayısını bilmek, bir aralık oluşturmak ve kullanıcı tarafından seçilen her harfi rastgele kelimeyle 
+        karşılaştırmak için rastgele kelimeyi bir diziye dönüştürün*/
+        let wordLetters = Array.from(randword);
+        //spans oluşturmak
+        wordLetters.forEach(letter => {
+            let span =document.createElement("span");
+            //tahmin kontainer'e spans eklemek
+            lettersGuessContainer.appendChild(span);
+        });
+
+        let guessSpan =document.querySelectorAll(".letter-guess span");
+        //
+        let wrongAttempts= 0; //yanlış denme sayısı
+        let trueAttempts=0;//doğru denme sayısı
+        let draw = document.querySelector(".hangman-draw");  
+        //fare kullanarak harflere tıkladığınızda 
+        document.addEventListener("click",(e)=>{
+            let userLetter = false; //doğru veya yanlış olup olmadığı harf kontrol etmek 
+            if(e.target.className === 'letter-box'){
+                e.target.classList.add("clicked");
+                //Tıklanan harf getir
+                let  clickedLetter = e.target.innerHTML.toLowerCase();
+                // console.log(clickedLetter);
+                let chosenWord = Array.from(randword.toLowerCase());
+                //Bu loop, seçilen harfi kelimenin harfleriyle karşılaştırmaktır
+                chosenWord.forEach((letter,wordIndex)=>{
+                    //if clicked letter == word letter
+                    if(clickedLetter == letter){
+                        // console.log('found and index is ${index}');
+                        userLetter = true;
+                        guessSpan.forEach((span,spanIndex)=>{
+                            if(wordIndex === spanIndex){
+                                trueAttempts++;
+                                span.innerHTML = clickedLetter;
+                            }
+                        });
+                    }
+                });
+                if(userLetter !== true){
+                    wrongAttempts++; 
+                    draw.classList.add(`wrong-${wrongAttempts}`);
+                    //kayıp sesini çal
+                    document.getElementById("lose").play();
+                    if(wrongAttempts === 8){
+                        endGame();
+                        lettersContainer.classList.add("finished");
+                    }
+                }else{
+                    document.getElementById("win").play();
+                }
+                if(trueAttempts === randword.length){
+                    let win = document.createElement("div");
+                    let winText = document.createTextNode(`YOU WIN ,Word Is ${randword}`);
+                    win.appendChild(winText);
+                    win.className ='win-popup';
+                    document.body.appendChild(win);
+                }
+            }
+        });
+        //oyun bitse 
+        function endGame(){
+            //create popup div
+            let div = document.createElement("div");
+            //create text
+            let divText = document.createTextNode(`Game Over , The Word Is ${randword}`);
+            //dive metin eklemek 
+            div.appendChild(divText);
+            //dive class eklemek 
+            div.className = 'popup';
+            //body e eklemek
+            document.body.appendChild(div);
+        }
+        
+    </script>
+</body>
+<style>
+    *{
+        box-sizing: border-box;
+        padding: 0px;
+        margin: 0px;
+    }
+    body {
+        background-color: #c2b918;
+        font-family:Tahoma,Arial ;
+        
+    }
+    .container{
+        background-color: #c5c5c5;
+        font-size: 20px;
+        width: 90vm;
+       max-width: 34em;
+        position: absolute;
+        border-radius: 0.6em;
+        padding: 3em;
+        margin: 15px auto;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%,-50%);
+    }
+    .key{
+        color: #b90e14;
+        background-color: transparent;
+        text-transform: capitalize;
+        text-align: center;
+        font-weight: bold;
+    }
+    .row{
+        display: flex;
+    }
+    .game-info{
+        display: flex;
+        padding: 5px;
+    }
+    .game-info .game-name {
+        flex: 1;
+        font-size: 25PX;
+        font-weight: bold;
+    }
+    hr{
+        border: 1px solid #eee;
+    }
+    
+    .game-info  .category {
+        flex: 1;
+        text-align: right;
+        font-weight: bold;
+    }
+
+    .hangman-draw{
+        background-color: #8f8f8f;
+        padding: 20PX;
+        height: 260px;
+        width: 120px;
+        border-radius: 0.6em;
+        margin-top: 5px;
+    }
+    .hangman-draw .the-draw{
+        width: 90px;
+        height: 200px;
+        border-bottom: 4px solid #222;
+        position: relative;
+        margin: auto;
+        left: -15px;
+        top: -10px;
+        display: none;
+    }
+    .hangman-draw .the-draw .stand{
+        display: none;
+    }
+    .hangman-draw .the-draw .stand:before{
+        content: '';
+        position: absolute;
+        width: 4px;
+        background-color: #222;
+        height: 80%;
+        left: 20%;
+        top: 40px;
+        margin-left: -2px;
+
+    }
+    .hangman-draw .the-draw .hang{
+        display: none;
+    }
+    .hangman-draw .the-draw .hang:before{
+        content: '';
+        position: absolute;
+        height: 4px;
+        background-color: #222;
+        width: 60px;
+        left: 14px;
+        top: 37px;
+    }
+    .hangman-draw .the-draw .hang:after{
+        content: '';
+        position: absolute;
+        width: 4px;
+        height: 25px;
+        background-color: #222;
+        
+        left: 70px;
+        top: 40px;
+    }
+    .hangman-draw .the-draw .rope{
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        position: absolute;
+        left: 48px;
+        top:61px;
+        border: 4px dashed #222;
+        display: none;
+    }
+    .hangman-draw .the-draw  .head {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: 4px solid #222;
+        position: absolute;
+        left:55px;
+        top:68px;
+        display: none;
+    }
+    .body-man{
+        position: absolute;
+        background-color: #222;
+        width: 4px;
+        height: 50px;
+        top: 100px;
+        left: 70px;
+        display: none;
+    } 
+   .hands{
+        display: none;
+    } 
+    /* sağ el */
+    .hangman-draw .the-draw .the-man .hands:before{
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 4px;
+        background-color: #222;
+        left: 70px;
+        top: 120px;
+        transform: rotate(30deg);
+        /* display: none; */
+    }
+    /* sol el  */
+    .hangman-draw .the-draw .the-man .hands:after{
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 4px;
+        background-color: #222;
+        left: 43px;
+        top: 120px;
+        transform: rotate(-30deg);
+        /* display: none; */
+    }
+    
+    .leggs{
+        display: none;
+    }
+    /* sağ ayak */
+    .hangman-draw .the-draw .the-man .leggs:before{
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 4px;
+        background-color: #222;
+        left: 70px;
+        top: 153px;
+        transform: rotate(30deg);
+    }
+    /* sol ayak */
+    .hangman-draw .the-draw .the-man .leggs:after{
+        content: '';
+        position: absolute;
+        width: 30px;
+        height: 4px;
+        background-color: #222;
+        left: 43px;
+        top: 153px;
+        transform: rotate(-30deg);
+    }
+    
+    .letters{
+        flex: 1;
+        text-align: center;
+        padding: 25px;
+    }
+    .letters.finished{
+        pointer-events: none;
+    }
+    .letters .letter-box{
+        width: 40px;
+        height: 40px;
+        display: inline-block;
+        background-color: #0c0b0a;
+        color: #eee;
+        font-size: 24px;
+        text-transform: capitalize;
+        margin-right: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-bottom: 10px;  
+    }
+    .letter-box:hover{
+        color:#b90e14;
+    }
+    .letter-guess{
+        margin: 10px auto;
+        background-color: #f8f8f8;
+        padding: 7px;
+        border-radius: 0.5em;
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+    .letter-guess span{
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+        text-align: center;
+        background-color: #222;
+        color: #eee;
+        margin-right: 5px;
+        text-transform: capitalize;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .letters .letter-box.clicked{
+        background-color: #970606cc;
+        opacity: 0.6;
+        pointer-events: none;
+        
+    }
+    .hangman-draw.wrong-1 .the-draw {
+        display: block;
+    }
+    .hangman-draw.wrong-2 .stand {
+        display: block;
+    }
+    .hangman-draw.wrong-3 .hang {
+        display: block;
+    }
+    .hangman-draw.wrong-4 .rope{
+        display: block;
+    }
+    .hangman-draw.wrong-5 .head{
+        display: block;
+    }
+    .hangman-draw.wrong-6 .body-man{
+        display: block;
+    }
+    .hangman-draw.wrong-7 .hands{
+        display: block;
+    }
+    .hangman-draw.wrong-8 .leggs{
+        display: block;
+    }
+    .popup{
+        position: fixed;
+        width: 30%;
+        height: 25%;
+        top: 40%;
+        left: 35%;
+        text-align: center;
+        font-size: 40px;
+        font-weight: bold;
+        background-color: #000000cc;
+        color: #ff0000;
+        border: 1px solid #ffffff;
+        padding: 50 px 20px;
+    }
+    .win-popup{
+        position: fixed;
+        width: 30%;
+        height: 25%;
+        top: 40%;
+        left: 35%;
+        text-align: center;
+        font-size: 40px;
+        font-weight: bold;
+        background-color: #000000cc;
+        color: #ff0000;
+        border: 1px solid #ffffff;
+        padding: 50 px 20px;
+    }
+
+    .new-game{
+        position: relative;
+        width: 30%;
+        height: 40px;
+        border-radius: 0.6em;
+        left: 35%;
+        margin-bottom: 10px;
+        font-size: 20px;
+        font-weight: bold;
+        border: 5px solid #0c0b0a;
+        cursor: pointer;
+        background-color: #8f8f8f;
+    }
+    .new-game:hover{
+        color: #860303;
+    }
+    .img1{
+        position: absolute;
+        width: 12.5%;
+        height: 12.5%;
+        border-radius: 0.6em;
+        top: 0%;
+        left: 43%;
+    }
+    
+</style>
+</html>

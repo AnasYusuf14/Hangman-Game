@@ -1,3 +1,10 @@
+<!-- Hangman Game -->
+<!--  
+Bu oyunda rastgele bir kelimenin ,
+(bir ülke, bir hayvanın adı veya bir kişinin adı) ,
+harflerini tahmin ediyorsunuz ve 8 deneme hakkı kazanıyorsunuz.
+Her yanlış denemenizde oyun sizin için bir darağacı kurmaya başlıyor. 
+izin ver o zaman kazanırsın. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,12 +16,14 @@
 
 </head>
 <body>
-   
+   <!-- 
+        İlk kutu(container) oyunun tüm bileşenlerini içerir.
+     -->
     <div class="container">
         <div class="game-info">
             <div class="game-name">HANGMAN</div>
             <img src="black.jpg" alt="noImg" class="img1">
-            <!-- //type of word -->
+            <!-- keleme turu -->
             <div class="category">
                 word: <span class="key"></span>
             </div> 
@@ -26,7 +35,7 @@
         <div class="row"> 
             <!-- //the container have the draw -->
             <div class="hangman-draw">  
-                <!-- the draw -->
+                 <!-- the draw (çizim) -->
                 <div class="the-draw">
                     <div class="stand"></div>
                     <div class="hang"></div>
@@ -47,7 +56,9 @@
         <!-- the place have the letters guess by user -->
         <div class="letter-guess"></div>
     </div>
+    <!-- doğru tahmin sesi -->
     <audio id="win"  src="win.mp3" preload="auto"></audio>
+    <!-- yanlış tahmin sesi -->
     <audio id="lose" src="lose.mp3" preload="auto"></audio>
     
     <script>
@@ -121,6 +132,8 @@
                     if(clickedLetter == letter){
                         // console.log('found and index is ${index}');
                         userLetter = true;
+                        /*Bu, kullanıcı tarafından bir harf seçildiğinde
+                        boş artı işaretlerine harfleri yerleştirmek için kullanılan bir döngüdür.*/
                         guessSpan.forEach((span,spanIndex)=>{
                             if(wordIndex === spanIndex){
                                 trueAttempts++;
